@@ -1,0 +1,5 @@
+name: BadBlockSurvie
+main: fr.badblock.survie.BadBlockSurvie
+author: xMalware
+version: 1.0
+depends: [BadblockGameAPI, WorldEdit, Essentials]
