@@ -1,5 +1,6 @@
 name: BadBlockSurvie
-main: fr.badblock.survie.BadBlockSurvie
 author: xMalware
 version: 1.0
-depends: [BadblockGameAPI, WorldEdit, Essentials]
+load: POSTWORLD
+main: fr.badblock.survie.BadBlockSurvie
+depends: [ProtocolLib, Multiverse-Core, BadblockGameAPI, WorldEdit, Essentials]

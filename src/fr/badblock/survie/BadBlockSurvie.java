@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,6 +22,7 @@ import org.bukkit.scoreboard.Team;
 import com.sk89q.wepif.PermissionsProvider;
 
 import fr.badblock.api.common.utils.permissions.PermissionsManager;
+import fr.badblock.game.core112R1.listeners.ChatListener;
 import fr.badblock.gameapi.GameAPI;
 import fr.badblock.gameapi.events.api.PlayerLoadedEvent;
 import fr.badblock.gameapi.players.BadblockPlayer;
@@ -72,6 +74,9 @@ public class BadBlockSurvie extends JavaPlugin implements Listener, PermissionsP
 				for (BadblockPlayer player : BukkitUtils.getAllPlayers())
 				{
 
+					double time = player.getStatistic(Statistic.PLAY_ONE_TICK) / 20 / 60;
+					ChatListener.levels.put(player.getUniqueId(), time + "m");
+					
 					player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
 
 					for (BadblockPlayer plo : BukkitUtils.getAllPlayers())
@@ -179,6 +184,13 @@ public class BadBlockSurvie extends JavaPlugin implements Listener, PermissionsP
 		event.setDeathMessage("");
 	}
 
+	@EventHandler
+	public void onJoined(PlayerLoadedEvent event)
+	{
+		double time = event.getPlayer().getStatistic(Statistic.PLAY_ONE_TICK) / 20 / 60;
+		ChatListener.levels.put(event.getPlayer().getUniqueId(), time + "m");
+	}
+	
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event)
 	{
