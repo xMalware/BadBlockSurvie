@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
@@ -21,6 +22,10 @@ import org.bukkit.scoreboard.Team;
 
 import com.sk89q.wepif.PermissionsProvider;
 
+import at.pcgamingfreaks.MarriageMaster.Bukkit.MarriageMaster;
+import be.maximvdw.placeholderapi.PlaceholderAPI;
+import be.maximvdw.placeholderapi.PlaceholderReplaceEvent;
+import be.maximvdw.placeholderapi.PlaceholderReplacer;
 import fr.badblock.api.common.utils.permissions.PermissionsManager;
 import fr.badblock.game.core112R1.listeners.ChatListener;
 import fr.badblock.gameapi.GameAPI;
@@ -30,8 +35,9 @@ import fr.badblock.gameapi.utils.BukkitUtils;
 
 public class BadBlockSurvie extends JavaPlugin implements Listener, PermissionsProvider
 {
-
+	
 	private Map<String, String> teamId = new HashMap<>();
+	public MarriageMaster marriageMaster;
 
 	public char generateForId(int id){
 		int A = 'A';
@@ -55,6 +61,8 @@ public class BadBlockSurvie extends JavaPlugin implements Listener, PermissionsP
 		GameAPI gameApi = GameAPI.getAPI();
 		
 		gameApi.formatChat(true, false, "freebuild");
+		
+		marriageMaster = (MarriageMaster) Bukkit.getPluginManager().getPlugin("MarriageMaster");
 
 		PermissionsManager.getManager().getGroups().stream().sorted((a, b) -> {
 			return Integer.compare(b.getPower(), a.getPower());
@@ -62,6 +70,39 @@ public class BadBlockSurvie extends JavaPlugin implements Listener, PermissionsP
 			String id = generateForId(i2) + "";
 			teamId.put(group.getName(), id);
 			i2++;
+		});
+		
+		PlaceholderAPI.registerPlaceholder(this, "badblock_group", new PlaceholderReplacer()
+		{
+			@Override
+			public String onPlaceholderReplace(PlaceholderReplaceEvent event)
+			{
+				if (event.getPlayer() != null)
+				{
+					Player p = event.getPlayer();
+					return ((BadblockPlayer) p).getTabGroupPrefix().getAsLine(p);
+				}
+
+				return "Inconnu";
+			}
+		});
+
+		PlaceholderAPI.registerPlaceholder(this, "badblock_groupcolor", new PlaceholderReplacer()
+		{
+			@Override
+			public String onPlaceholderReplace(PlaceholderReplaceEvent event)
+			{
+				if (event.getPlayer() != null)
+				{
+					Player p = event.getPlayer();
+					String prefix = ((BadblockPlayer) p).getTabGroupPrefix().getAsLine(p);
+					String prefixWithoutColors = ChatColor.stripColor(prefix);
+					String color = prefix.replace(prefixWithoutColors, "");
+					return color;
+				}
+
+				return "§f";
+			}
 		});
 
 		Bukkit.getScheduler().runTaskTimer(this, new Runnable()
@@ -75,7 +116,21 @@ public class BadBlockSurvie extends JavaPlugin implements Listener, PermissionsP
 				{
 
 					double time = player.getStatistic(Statistic.PLAY_ONE_TICK) / 20 / 60;
-					ChatListener.levels.put(player.getUniqueId(), time + "m");
+					String s = "";
+					if (marriageMaster != null)
+					{
+						String string = marriageMaster.DB.GetPartner(player);
+						if (string != null)
+						{
+							s = "§d§l♥ §r§d" + string + "§f] [";
+						}
+						else
+						{
+							s = "§f/§f] [";
+						}
+					}
+					
+					ChatListener.levels.put(player.getUniqueId(), s + "§b" + time + "m");
 					
 					player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
 
@@ -114,7 +169,7 @@ public class BadBlockSurvie extends JavaPlugin implements Listener, PermissionsP
 
 						for (Team t : scoreboard.getTeams())
 						{
-							if (t.equals(team))
+							if (t.getName().equals(team.getName()))
 							{
 								continue;
 							}
@@ -188,7 +243,22 @@ public class BadBlockSurvie extends JavaPlugin implements Listener, PermissionsP
 	public void onJoined(PlayerLoadedEvent event)
 	{
 		double time = event.getPlayer().getStatistic(Statistic.PLAY_ONE_TICK) / 20 / 60;
-		ChatListener.levels.put(event.getPlayer().getUniqueId(), time + "m");
+		
+		String s = "";
+		if (marriageMaster != null)
+		{
+			String string = marriageMaster.DB.GetPartner(event.getPlayer());
+			if (string != null)
+			{
+				s = "§d§l♥ §r§d" + string + "§f] [";
+			}
+			else
+			{
+				s = "§f/§f] [";
+			}
+		}
+		
+		ChatListener.levels.put(event.getPlayer().getUniqueId(), s + time + "m");
 	}
 	
 	@EventHandler
